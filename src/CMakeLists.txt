@@ -17,7 +17,7 @@ y60_add_component(
     y60vlc 
     SOURCES ${SOURCES}
     HEADERS ${HEADERS}
-    DEPENDS y60video y60jslib
+    DEPENDS y60video aslaudio
     EXTERNS ${EXTERNALS}
 )
 

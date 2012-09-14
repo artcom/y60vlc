@@ -59,47 +59,62 @@
 #ifndef _ac_VLC_h_
 #define _ac_VLC_h_
 
-#include <y60/video/CaptureDevice.h>
 
 #include <asl/base/settings.h>
 #include <asl/base/PlugInBase.h>
-#include <asl/base/ReadWriteLock.h>
-#include <y60/jsbase/IScriptablePlugin.h>
-#include <y60/jsbase/JSWrapper.h>
-#include <asl/base/PosixThread.h>
+#include <y60/video/AsyncDecoder.h>
+
+#include <vlc/vlc.h>
 
 namespace y60 {
     /*! @addtogroup Y60componentsVLC */
 /*  @{ */
-    const std::string MIME_TYPE_CAMERA = "video/camera";
+    const std::string MIME_TYPE_MPG = "application/mpg";
     class VLC : 
-        public y60::CaptureDevice, 
+        public AsyncDecoder,
         public asl::PlugInBase  
     {
     public:
         VLC(asl::DLHandle theDLHandle);
         ~VLC();
-        virtual asl::Ptr<CaptureDevice> instance() const;
-        std::string canDecode(const std::string & theUrl, asl::Ptr<asl::ReadableStreamHandle> theStream 
-                = asl::Ptr<asl::ReadableStreamHandle>(0));
-        virtual void readFrame(dom::ResizeableRasterPtr theTargetRaster);
-        virtual void load(const std::string & theFilename);
+        virtual asl::Ptr<MovieDecoderBase> instance() const;
+        std::string canDecode(const std::string & theUrl, asl::Ptr<asl::ReadableStreamHandle> theStream = asl::Ptr<asl::ReadableStreamHandle>());
+        /**
+         * loads a movie from the file given by theFilename
+         * @param theFilename file to load into the decoder
+         */
+        void load(const std::string & theFilename);
+        double readFrame(double theTime, unsigned, RasterVector theTargetRaster);
 
-		virtual void startCapture();
-        virtual void stopCapture();
-        virtual void pauseCapture();
+        /**
+         * Starts movie decoding
+         * @param theStartTime movie-time to start decoding at.
+         */
+        // void startMovie(double theStartTime = 0.0f, bool theStartAudioFlag = true);
+
+        //void resumeMovie(double theStartTime = 0.0f, bool theResumeAudioFlag = true);
+
+        /**
+         * Called to stop the decoding.
+         */
+        // void stopMovie(bool theStopAudioFlag = true);
+        // void closeMovie();
+
+        const char * getName() const { return "y60vlc"; }
+
+        // void shutdown();
 
 	    DEFINE_EXCEPTION(Exception, asl::Exception);
 
-    private:
-        asl::ReadWriteLock _myFrameLock;
-        asl::Block _myFrameBuffer;
-        unsigned int _myFrameBufferWidth;
-        unsigned int _myFrameBufferHeight;
-        bool _myInitialized;
-    
-        // callback function. copy image from buffer sdk to y60 frame queue.
-        static void frameCallback(void * objectPointer, int theColumns, int theRows, void* theImagePointer); 
+     private:
+        void setupVideo();
+        int _myFrameWidth;
+        int _myFrameHeight;
+
+        libvlc_instance_t *libvlc;
+        libvlc_media_t *m;
+        libvlc_media_player_t *mp;
+        
     };
 /* @} */
 }
