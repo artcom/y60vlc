@@ -49,54 +49,78 @@ EXPORT asl::PlugInBase * y60vlc_instantiatePlugIn(asl::DLHandle myDLHandle) {
     
 namespace y60 {
 
+    const std::string VLC::MIME_TYPE = "application/x-vlc-plugin";
+
+
     VLC::VLC(asl::DLHandle theDLHandle) 
-        : AsyncDecoder(),
-        PlugInBase(theDLHandle)
+        : CaptureDevice(),
+        PlugInBase(theDLHandle),
+        _curBuffer(0)
     {
     }
 
     VLC::~VLC() {
     }
 
-    asl::Ptr<MovieDecoderBase> VLC::instance() const {
-        return asl::Ptr<MovieDecoderBase>(new VLC(getDLHandle()));
+    asl::Ptr<CaptureDevice> VLC::instance() const {
+        AC_DEBUG << "creating new VLC instance";
+        return asl::Ptr<CaptureDevice>(new VLC(getDLHandle()));
     }
 
-    double
-    VLC::readFrame(double theTime, unsigned /*theFrame*/, RasterVector theTargetRaster)
-    {
-        AC_TRACE << "readFrame, Time wanted=" << theTime;
-        //ASSURE(!getEOF());
-        if (getEOF()) {
-            return theTime;
+    void
+    VLC::readFrame(dom::ResizeableRasterPtr theTargetRaster) {
+        ScopeLocker myFrameLock(_myFrameLock, true);
+        if (_curBuffer == 0) {
+            return;
         }
-        if (getPlayMode() == y60::PLAY_MODE_STOP) {
-            AC_DEBUG << "readFrame: not playing.";
-            return theTime;
-        }
-        return theTime;
+		if (getFrameWidth() != _myFrameWidth) setFrameWidth(_myFrameWidth);
+		if (getFrameHeight() != _myFrameHeight) setFrameHeight(_myFrameHeight);
+        theTargetRaster->resize(getFrameWidth(), getFrameHeight());
+        std::copy(_curBuffer->begin(), _curBuffer->end(),  
+                        theTargetRaster->pixels().begin());
+        // delete the current buffer, marking that we already copied it to the texture
+        delete _curBuffer;
+        _curBuffer = 0;
     }
+
     std::string
     VLC::canDecode(const std::string & theUrl, asl::Ptr<asl::ReadableStreamHandle> theStream) {
-        // assume that ffmpeg can decode everything, except y60 formats
-        if (asl::toLowerCase(asl::getExtension(theUrl)) != "m60" &&
-            asl::toLowerCase(asl::getExtension(theUrl)) != "x60" &&
-            asl::toLowerCase(asl::getExtension(theUrl)) != "d60" &&
-            asl::toLowerCase(asl::getExtension(theUrl)) != "i60" )
-        {
-            AC_DEBUG << "VLC can decode :" << theUrl << endl;
-            return MIME_TYPE_MPG;
-        } else {
-            AC_DEBUG << "VLC can not decode :" << theUrl << endl;
-            return "";
+        std::string::size_type schemaDelimiter = theUrl.find(":");
+        if (schemaDelimiter != std::string::npos) {
+            std::string urlSchema = theUrl.substr(0, schemaDelimiter);
+            if (urlSchema == "file" || urlSchema == "rtp") {
+                return MIME_TYPE;
+            }
         }
+
+        AC_WARNING << "VLC can not decode :" << theUrl << endl;
+        return "";
     }
     
     void
     VLC::load(const std::string & theFilename) {
-        AC_DEBUG << "VLC::load(" << theFilename << ")";
+        AC_DEBUG << "VLC::load('" << theFilename << "')";
+        _mediaURL = theFilename;
 
         setupVideo();
+        
+        char const *vlc_argv[] =
+        {
+            "--no-audio", /* skip any audio track */
+            "--no-xlib", /* tell VLC to not use Xlib */
+        };
+        int vlc_argc = sizeof(vlc_argv) / sizeof(*vlc_argv);
+
+
+        _libvlc = libvlc_new(vlc_argc, vlc_argv);
+        libvlc_media_t * m = libvlc_media_new_path(_libvlc, theFilename.c_str());
+        _mp = libvlc_media_player_new_from_media(m);
+        libvlc_media_release(m);
+
+        libvlc_video_set_callbacks(_mp, VLC::lock, VLC::unlock, VLC::display, this);
+        libvlc_video_set_format(_mp, "RV24", _myFrameWidth, _myFrameHeight, getBytesRequired(_myFrameWidth, _rasterEncoding));
+        libvlc_media_player_play(_mp);
+
         
     }
     void 
@@ -105,153 +129,39 @@ namespace y60 {
         // AVCodecContext * myVCodec = _myVStream->codec;
         // _myVideoStartTimestamp = -1; // used as flag, we use the dts of the first decoded frame
 
-        Movie * myMovie = getMovie();
-        AC_DEBUG << "PF=" << myMovie->get<RasterPixelFormatTag>();
-
-        PixelEncoding myRasterEncoding = PixelEncoding(getEnumFromString(myMovie->get<RasterPixelFormatTag>(),
-                                                        PixelEncodingString));
-
-        // TargetPixelFormatTag is the format the incoming movieframe will be converted in
-        if (myMovie->get<TargetPixelFormatTag>() != "") {
-            TextureInternalFormat myTargetPixelFormat = TextureInternalFormat(getEnumFromString(myMovie->get<TargetPixelFormatTag>(), TextureInternalFormatStrings));
-            switch(myTargetPixelFormat) {
-                case TEXTURE_IFMT_YUVA420:
-                    myRasterEncoding = YUVA420;
-                    break;
-                case TEXTURE_IFMT_YUV420:
-                    myRasterEncoding = YUV420;
-                    break;
-                case TEXTURE_IFMT_YUV422:
-                    myRasterEncoding = YUV422;
-                    break;
-                case TEXTURE_IFMT_YUV444:
-                    myRasterEncoding = YUV444;
-                    break;
-                case TEXTURE_IFMT_RGBA8:
-                    myRasterEncoding = RGBA;
-                    break;
-                case TEXTURE_IFMT_ALPHA:
-                    myRasterEncoding = ALPHA;
-                    break;
-
-                case TEXTURE_IFMT_LUMINANCE:
-                case TEXTURE_IFMT_LUMINANCE8:
-                case TEXTURE_IFMT_LUMINANCE16:
-                case TEXTURE_IFMT_INTENSITY:
-                    myRasterEncoding = GRAY;
-                    break;
-                case TEXTURE_IFMT_RGB:
-                    myRasterEncoding = RGB;
-                    break;
-                default:
-                    AC_FATAL << "Unsupported pixel format " << myMovie->get<TargetPixelFormatTag>() << " in FFMpegDecoder2";
-                    break;
-            }
-        }
+        _rasterEncoding = BGR;
 
         // Setup size and image matrix
         _myFrameWidth = 800;
         _myFrameHeight = 600;
 
-
-        switch (myRasterEncoding) {
-            case RGBA:
-                {AC_DEBUG << "Using TEXTURE_IFMT_RGBA8 pixels";}
-                //_myDestinationPixelFormat = PIX_FMT_BGRA;
-                //_myBytesPerPixel = 4;
-                myMovie->createRaster(_myFrameWidth, _myFrameHeight, 1, y60::BGRA);
-                break;
-            case ALPHA:
-                {AC_DEBUG << "Using Alpha pixels";}
-                //_myDestinationPixelFormat = PIX_FMT_GRAY8;
-                //_myBytesPerPixel = 1;
-                myMovie->createRaster(_myFrameWidth, _myFrameHeight, 1, y60::ALPHA);
-                break;
-            case GRAY:
-                {AC_DEBUG << "Using GRAY pixels";}
-                //_myDestinationPixelFormat = PIX_FMT_GRAY8;
-                //_myBytesPerPixel = 1;
-                myMovie->createRaster(_myFrameWidth, _myFrameHeight, 1, y60::GRAY);
-                break;
-            case YUV420:
-                {AC_DEBUG << "Using YUV420 pixels";}
-                //_myDestinationPixelFormat = PIX_FMT_YUV420P;
-                /*
-                if (myVCodec->pix_fmt != PIX_FMT_YUV420P) {
-                    AC_WARNING<<"you're trying to use YUV2RGB shader but the source video pixel format is not YUV420p, src: " + theFilename;
-                }
-                */
-                myMovie->createRaster(_myFrameWidth, _myFrameHeight, 1, y60::GRAY);
-                myMovie->addRasterValue(createRasterValue( y60::GRAY, _myFrameWidth/2, _myFrameHeight/2), y60::GRAY, 1);
-                myMovie->addRasterValue(createRasterValue( y60::GRAY, _myFrameWidth/2, _myFrameHeight/2), y60::GRAY, 1);
-                break;
-            case YUVA420:
-                {AC_DEBUG << "Using YUVA420 pixels";}
-                //_myDestinationPixelFormat = PIX_FMT_YUVA420P;
-                /*
-                if (myVCodec->pix_fmt != PIX_FMT_YUVA420P) {
-                    AC_WARNING<<"you're trying to use YUV2RGB shader but the source video pixel format is not YUVA420p, src: " + theFilename;
-                }
-                */
-                myMovie->createRaster(_myFrameWidth, _myFrameHeight, 1, y60::GRAY);
-                myMovie->addRasterValue(createRasterValue( y60::GRAY, _myFrameWidth/2, _myFrameHeight/2), y60::GRAY, 1);
-                myMovie->addRasterValue(createRasterValue( y60::GRAY, _myFrameWidth/2, _myFrameHeight/2), y60::GRAY, 1);
-                myMovie->addRasterValue(createRasterValue( y60::GRAY, _myFrameWidth, _myFrameHeight), y60::GRAY, 1);
-                break;
-            case YUV422:
-                {AC_DEBUG << "Using YUV422 pixels";}
-                //_myDestinationPixelFormat = PIX_FMT_YUV422P;
-                /*
-                if (myVCodec->pix_fmt != PIX_FMT_YUV422P) {
-                    AC_WARNING<<"you're trying to use YUV2RGB shader but the source video pixel format is not YUV422p, src: " + theFilename;
-                }
-                */
-                myMovie->createRaster(_myFrameWidth, _myFrameHeight, 1, y60::GRAY);
-                myMovie->addRasterValue(createRasterValue( y60::GRAY, _myFrameWidth, _myFrameHeight/2), y60::GRAY, 1);
-                myMovie->addRasterValue(createRasterValue( y60::GRAY, _myFrameWidth, _myFrameHeight/2), y60::GRAY, 1);
-                break;
-            case YUV444:
-                {AC_DEBUG << "Using YUV444 pixels";}
-                //_myDestinationPixelFormat = PIX_FMT_YUV444P;
-                /*
-                if (myVCodec->pix_fmt != PIX_FMT_YUV444P) {
-                    AC_WARNING<<"you're trying to use YUV2RGB shader but the source video pixel format is not YUV444p, src: " + theFilename;
-                }
-                */
-                myMovie->createRaster(_myFrameWidth, _myFrameHeight, 1, y60::GRAY);
-                myMovie->addRasterValue(createRasterValue( y60::GRAY, _myFrameWidth, _myFrameHeight), y60::GRAY, 1);
-                myMovie->addRasterValue(createRasterValue( y60::GRAY, _myFrameWidth, _myFrameHeight), y60::GRAY, 1);
-                break;
-            case RGB:
-            default:
-                {AC_DEBUG << "Using BGR pixels";}
-                //_myDestinationPixelFormat = PIX_FMT_BGR24;
-                //_myBytesPerPixel = 3;
-                myMovie->createRaster(_myFrameWidth, _myFrameHeight, 1, y60::BGR);
-                break;
-        }
-        unsigned myRasterCount = myMovie->getNode().childNodesLength();
-        /*
-        if (_myDestinationPixelFormat == PIX_FMT_YUV420P
-            || _myDestinationPixelFormat == PIX_FMT_YUV422P
-            || _myDestinationPixelFormat == PIX_FMT_YUV444P)
-        {
-            memset(myMovie->getRasterPtr(0)->pixels().begin(), 16, myMovie->getRasterPtr(0)->pixels().size());
-            memset(myMovie->getRasterPtr(1)->pixels().begin(), 127, myMovie->getRasterPtr(1)->pixels().size());
-            memset(myMovie->getRasterPtr(2)->pixels().begin(), 127, myMovie->getRasterPtr(2)->pixels().size());
-        } else if (_myDestinationPixelFormat == PIX_FMT_YUVA420P ) {
-            memset(myMovie->getRasterPtr(0)->pixels().begin(), 16, myMovie->getRasterPtr(0)->pixels().size());
-            memset(myMovie->getRasterPtr(1)->pixels().begin(), 127, myMovie->getRasterPtr(1)->pixels().size());
-            memset(myMovie->getRasterPtr(2)->pixels().begin(), 127, myMovie->getRasterPtr(2)->pixels().size());
-            memset(myMovie->getRasterPtr(3)->pixels().begin(), 0, myMovie->getRasterPtr(3)->pixels().size());
-        } else {
-            for (unsigned i = 0; i < myRasterCount; i++) {
-                myMovie->getRasterPtr(i)->clear();
-            }
-        }
-        */
-
-        // allocate frame for YUV data
-        // _myFrame = avcodec_alloc_frame();
+        setPixelFormat(_rasterEncoding);
+        setFrameHeight(_myFrameHeight);
+        setFrameWidth(_myFrameWidth);
     }
+    void *
+    VLC::lock(void ** pixels) {
+        AC_TRACE << "lock " << _mediaURL;
+        Block * buffer = new Block(getBytesRequired(_myFrameWidth, _rasterEncoding)* _myFrameHeight);
+        AC_TRACE << "allocated " << buffer->size() << " bytes";
+        *pixels = buffer->begin();
+        return buffer; 
+    };
+
+    void 
+    VLC::unlock(void* id, void * const * pixels) { 
+        AC_TRACE << "unlock " << _mediaURL;
+        return; 
+    };
+    void VLC::display(void* id) { 
+        AC_TRACE << "display " << _mediaURL;
+        ScopeLocker myFrameLock(_myFrameLock, true);
+        if (_curBuffer) {
+            AC_TRACE << "freeing " << _curBuffer->size() << " bytes";
+            delete _curBuffer;
+        }
+        _curBuffer = static_cast<Block*>(id);
+        return; 
+    };
+
 }

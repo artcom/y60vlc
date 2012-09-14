@@ -62,29 +62,30 @@
 
 #include <asl/base/settings.h>
 #include <asl/base/PlugInBase.h>
-#include <y60/video/AsyncDecoder.h>
+#include <asl/base/ReadWriteLock.h>
+#include <y60/video/CaptureDevice.h>
 
 #include <vlc/vlc.h>
 
 namespace y60 {
     /*! @addtogroup Y60componentsVLC */
 /*  @{ */
-    const std::string MIME_TYPE_MPG = "application/mpg";
     class VLC : 
-        public AsyncDecoder,
+        public CaptureDevice,
         public asl::PlugInBase  
     {
     public:
+        static const std::string MIME_TYPE;
         VLC(asl::DLHandle theDLHandle);
         ~VLC();
-        virtual asl::Ptr<MovieDecoderBase> instance() const;
+        virtual asl::Ptr<CaptureDevice> instance() const;
         std::string canDecode(const std::string & theUrl, asl::Ptr<asl::ReadableStreamHandle> theStream = asl::Ptr<asl::ReadableStreamHandle>());
         /**
          * loads a movie from the file given by theFilename
          * @param theFilename file to load into the decoder
          */
         void load(const std::string & theFilename);
-        double readFrame(double theTime, unsigned, RasterVector theTargetRaster);
+        void readFrame(dom::ResizeableRasterPtr theTargetRaster);
 
         /**
          * Starts movie decoding
@@ -107,13 +108,25 @@ namespace y60 {
 	    DEFINE_EXCEPTION(Exception, asl::Exception);
 
      private:
+        asl::ReadWriteLock _myFrameLock;
+        // callbacks & static dispatchers
+        void *lock(void ** pixels);
+        static void * lock(void* self, void ** pixels) { return static_cast<VLC*>(self)->lock(pixels); };
+
+        void unlock(void* id, void * const * pixels);
+        static void unlock(void* self, void* id, void * const * pixels) { static_cast<VLC*>(self)->unlock(id, pixels); }; 
+        
+        void display(void* id);
+        static void display(void* self, void* id) { static_cast<VLC*>(self)->display(id); };
         void setupVideo();
+        std::string _mediaURL;
         int _myFrameWidth;
         int _myFrameHeight;
 
-        libvlc_instance_t *libvlc;
-        libvlc_media_t *m;
-        libvlc_media_player_t *mp;
+        PixelEncoding _rasterEncoding;
+        asl::Block * _curBuffer;
+        libvlc_instance_t * _libvlc;
+        libvlc_media_player_t * _mp;
         
     };
 /* @} */

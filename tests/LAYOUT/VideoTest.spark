@@ -1,0 +1,13 @@
+<Window
+    name="VideoTest"
+    title="VideoTest"
+    decorations="true"
+    mouseCursor="true"
+    width="1280"
+    height="960"
+    swapInterval="1"
+    i18nContext="global-i18n">    
+
+    <VlcCapture type="vlc" alpha="1" x="0" width="1280" height="960" 
+        visible="true" name="cam" mode="play" capturewidth="640" captureheight="480" z="2"/>
+</Window>
