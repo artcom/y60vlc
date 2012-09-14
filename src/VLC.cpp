@@ -102,11 +102,10 @@ namespace y60 {
         AC_DEBUG << "VLC::load('" << theFilename << "')";
         _mediaURL = theFilename;
 
-        setupVideo();
-        
         char const *vlc_argv[] =
         {
             "--no-audio", /* skip any audio track */
+            "--no-osd",
             "--no-xlib", /* tell VLC to not use Xlib */
         };
         int vlc_argc = sizeof(vlc_argv) / sizeof(*vlc_argv);
@@ -118,27 +117,36 @@ namespace y60 {
         libvlc_media_release(m);
 
         libvlc_video_set_callbacks(_mp, VLC::lock, VLC::unlock, VLC::display, this);
-        libvlc_video_set_format(_mp, "RV24", _myFrameWidth, _myFrameHeight, getBytesRequired(_myFrameWidth, _rasterEncoding));
+        _rasterEncoding = BGR;
+        setPixelFormat(_rasterEncoding);
+        libvlc_video_set_format_callbacks(_mp, VLC::setup_video, VLC::cleanup_video);
         libvlc_media_player_play(_mp);
 
         
     }
-    void 
-    VLC::setupVideo() {
-        AC_DEBUG << "VLC::setupVideo";
-        // AVCodecContext * myVCodec = _myVStream->codec;
-        // _myVideoStartTimestamp = -1; // used as flag, we use the dts of the first decoded frame
 
+    unsigned  
+    VLC::setup_video(char * chroma, unsigned *width, unsigned *height, unsigned *pitches, unsigned *lines) {
+
+        AC_DEBUG << "VLC reqeusting " << chroma << " " << *width << "x" << *height << " for " << _mediaURL;
+
+        // TODO: we could use our YUV shader here
+        AC_INFO << "Can't render " << chroma << ", asking libvlc to convert to RGB";
+        memcpy(chroma, "RV24", 4);  
         _rasterEncoding = BGR;
-
-        // Setup size and image matrix
-        _myFrameWidth = 800;
-        _myFrameHeight = 600;
-
+        
+        _myFrameWidth = *width;
+        _myFrameHeight = *height;
+        (*pitches) = getBytesRequired(_myFrameWidth, _rasterEncoding);
+        (*lines) = _myFrameHeight;
+        
         setPixelFormat(_rasterEncoding);
         setFrameHeight(_myFrameHeight);
         setFrameWidth(_myFrameWidth);
+
+        return 1;
     }
+
     void *
     VLC::lock(void ** pixels) {
         AC_TRACE << "lock " << _mediaURL;

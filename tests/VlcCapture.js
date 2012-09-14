@@ -29,8 +29,8 @@ spark.VlcCapture.Constructor = function (Protected) {
         _myCaptureNode.name = "CaptureNode";
         _myCaptureNode.id = createUniqueId();
         _myCaptureNode.playmode = "play";
-        // _myCaptureNode.src = "file:///Users/martin/dev/t-gallery/y60vlc/tests/test720p.mkv"; 
-        _myCaptureNode.src = "rtp://239.35.10.2:10000"; 
+        _myCaptureNode.src = Protected.getString("uri"); // "file:///Users/martin/dev/t-gallery/y60vlc/tests/test720p.mkv"; 
+        // _myCaptureNode.src = "rtp://239.35.10.2:10000"; 
         Logger.info("Create Capture node with src: " + _myCaptureNode.src);
         if (_myCaptureNode) {
             window.scene.loadCaptureFrame(_myCaptureNode);

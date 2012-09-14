@@ -8,6 +8,6 @@
     swapInterval="1"
     i18nContext="global-i18n">    
 
-    <VlcCapture type="vlc" alpha="1" x="0" width="1280" height="960" 
-        visible="true" name="cam" mode="play" capturewidth="640" captureheight="480" z="2"/>
+    <!--<VlcCapture type="vlc" uri="file:///Users/martin/dev/t-gallery/y60vlc/tests/test720p.mkv" x="0" width="1280" height="960" visible="true" name="cam" mode="play" z="2"/>-->
+    <VlcCapture type="vlc" uri="rtp://239.35.10.2:10000" x="0" width="1280" height="720" visible="true" name="cam" mode="play" z="2"/>
 </Window>

@@ -111,14 +111,24 @@ namespace y60 {
         asl::ReadWriteLock _myFrameLock;
         // callbacks & static dispatchers
         void *lock(void ** pixels);
-        static void * lock(void* self, void ** pixels) { return static_cast<VLC*>(self)->lock(pixels); };
+        static void * lock(void* self, void ** pixels) { return reinterpret_cast<VLC*>(self)->lock(pixels); };
 
         void unlock(void* id, void * const * pixels);
-        static void unlock(void* self, void* id, void * const * pixels) { static_cast<VLC*>(self)->unlock(id, pixels); }; 
+        static void unlock(void* self, void* id, void * const * pixels) { reinterpret_cast<VLC*>(self)->unlock(id, pixels); }; 
         
         void display(void* id);
-        static void display(void* self, void* id) { static_cast<VLC*>(self)->display(id); };
-        void setupVideo();
+        static void display(void* self, void* id) { reinterpret_cast<VLC*>(self)->display(id); };
+
+        unsigned setup_video(char * chroma, unsigned *width, unsigned *height, unsigned *pitches, unsigned *lines);
+        static unsigned setup_video(void** self, char * chroma, unsigned *width, unsigned *height, unsigned *pitches, unsigned *lines) {
+            return reinterpret_cast<VLC*>(*self)->setup_video(chroma, width, height, pitches, lines);
+        }
+
+        void cleanup_video() {};
+        static void cleanup_video(void* self) {
+            static_cast<VLC*>(self)->cleanup_video();
+        }
+
         std::string _mediaURL;
         int _myFrameWidth;
         int _myFrameHeight;
