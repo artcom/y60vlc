@@ -111,17 +111,17 @@ namespace y60 {
         asl::ReadWriteLock _myFrameLock;
         // callbacks & static dispatchers
         void *lock(void ** pixels);
-        static void * lock(void* self, void ** pixels) { return reinterpret_cast<VLC*>(self)->lock(pixels); };
+        static void * lock(void* self, void ** pixels) { return static_cast<VLC*>(self)->lock(pixels); };
 
-        void unlock(void* id, void * const * pixels);
-        static void unlock(void* self, void* id, void * const * pixels) { reinterpret_cast<VLC*>(self)->unlock(id, pixels); }; 
+        void unlock(asl::Block* oldBuffer, void * const * pixels);
+        static void unlock(void* self, void* oldBuffer, void * const * pixels) { static_cast<VLC*>(self)->unlock(static_cast<asl::Block*>(oldBuffer), pixels); }; 
         
-        void display(void* id);
-        static void display(void* self, void* id) { reinterpret_cast<VLC*>(self)->display(id); };
+        void display(asl::Block* nextBuffer);
+        static void display(void* self, void* nextBuffer) { static_cast<VLC*>(self)->display(static_cast<asl::Block*>(nextBuffer)); };
 
         unsigned setup_video(char * chroma, unsigned *width, unsigned *height, unsigned *pitches, unsigned *lines);
         static unsigned setup_video(void** self, char * chroma, unsigned *width, unsigned *height, unsigned *pitches, unsigned *lines) {
-            return reinterpret_cast<VLC*>(*self)->setup_video(chroma, width, height, pitches, lines);
+            return static_cast<VLC*>(*self)->setup_video(chroma, width, height, pitches, lines);
         }
 
         void cleanup_video() {};

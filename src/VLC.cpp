@@ -60,6 +60,10 @@ namespace y60 {
     }
 
     VLC::~VLC() {
+        if (_curBuffer) {
+            delete _curBuffer;
+        }
+
     }
 
     asl::Ptr<CaptureDevice> VLC::instance() const {
@@ -104,7 +108,6 @@ namespace y60 {
 
         char const *vlc_argv[] =
         {
-            "--no-audio", /* skip any audio track */
             "--no-osd",
             "--no-xlib", /* tell VLC to not use Xlib */
         };
@@ -128,7 +131,7 @@ namespace y60 {
     unsigned  
     VLC::setup_video(char * chroma, unsigned *width, unsigned *height, unsigned *pitches, unsigned *lines) {
 
-        AC_DEBUG << "VLC reqeusting " << chroma << " " << *width << "x" << *height << " for " << _mediaURL;
+        AC_DEBUG << "VLC requesting " << chroma << " " << *width << "x" << *height << " for " << _mediaURL;
 
         // TODO: we could use our YUV shader here
         AC_INFO << "Can't render " << chroma << ", asking libvlc to convert to RGB";
@@ -144,31 +147,31 @@ namespace y60 {
         setFrameHeight(_myFrameHeight);
         setFrameWidth(_myFrameWidth);
 
-        return 1;
+        return 1; // one color plane
     }
 
     void *
     VLC::lock(void ** pixels) {
         AC_TRACE << "lock " << _mediaURL;
-        Block * buffer = new Block(getBytesRequired(_myFrameWidth, _rasterEncoding)* _myFrameHeight);
-        AC_TRACE << "allocated " << buffer->size() << " bytes";
-        *pixels = buffer->begin();
-        return buffer; 
+        Block * newBuffer = new Block(getBytesRequired(_myFrameWidth, _rasterEncoding)* _myFrameHeight);
+        AC_TRACE << "allocated " << newBuffer->size() << " bytes";
+        *pixels = newBuffer->begin();
+        return newBuffer; 
     };
 
     void 
-    VLC::unlock(void* id, void * const * pixels) { 
+    VLC::unlock(asl::Block* oldBuffer, void * const * pixels) { 
         AC_TRACE << "unlock " << _mediaURL;
         return; 
     };
-    void VLC::display(void* id) { 
+    void VLC::display(Block* nextBuffer) { 
         AC_TRACE << "display " << _mediaURL;
         ScopeLocker myFrameLock(_myFrameLock, true);
         if (_curBuffer) {
             AC_TRACE << "freeing " << _curBuffer->size() << " bytes";
             delete _curBuffer;
         }
-        _curBuffer = static_cast<Block*>(id);
+        _curBuffer = nextBuffer;
         return; 
     };
 

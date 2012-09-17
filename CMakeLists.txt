@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6.2)
 
-project(Y60VLC)
+project(Y60VLCPlugin)
 
 find_package(Y60)
 
@@ -13,12 +13,12 @@ set(LIBVLC_DEFINITIONS ${PC_LIBVLC_CFLAGS_OTHER})
 
 
 find_path(LIBVLC_INCLUDE_DIR vlc/vlc.h
-    HINTS ${PC_LIBVLC_INCLUDEDIR} ${PC_LIBVLC_INCLUDE_DIRS}
+    HINTS ${PC_LIBVLC_INCLUDEDIR} ${PC_LIBVLC_INCLUDE_DIRS} $ENV{VLC_DIR}/sdk/include
           PATH_SUFFIXES libvlc )
 
 
-find_library(LIBVLC_LIBRARY NAMES vlc
-    HINTS ${PC_LIBVLC_LIBDIR} ${PC_LIBVLC_LIBRARY_DIRS} )
+find_library(LIBVLC_LIBRARY NAMES vlc libvlc
+    HINTS ${PC_LIBVLC_LIBDIR} ${PC_LIBVLC_LIBRARY_DIRS} $ENV{VLC_DIR}/sdk/lib )
 
          set(LIBVLC_LIBRARIES ${LIBVLC_LIBRARY} )
          set(LIBVLC_INCLUDE_DIRS ${LIBVLC_INCLUDE_DIR} )
@@ -32,7 +32,7 @@ find_package_handle_standard_args(LIBVLC DEFAULT_MSG
 mark_as_advanced(LIBVLC_INCLUDE_DIR LIBVLC_LIBRARY )
 
 ac_add_project(
-    Y60VLC
+    Y60VLCPlugin
 	VERSION_MAJOR 1 VERSION_MINOR 2 VERSION_PATCH 0
     VENDOR "ART+COM AG"
 	CONTACT "info@artcom.de"
