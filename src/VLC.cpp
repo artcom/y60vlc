@@ -109,13 +109,15 @@ namespace y60 {
         char const *vlc_argv[] =
         {
             "--no-osd",
+			"-vvv",
+			"--reset-plugins-cache",
             "--no-xlib", /* tell VLC to not use Xlib */
         };
         int vlc_argc = sizeof(vlc_argv) / sizeof(*vlc_argv);
 
 
         _libvlc = libvlc_new(vlc_argc, vlc_argv);
-        libvlc_media_t * m = libvlc_media_new_path(_libvlc, theFilename.c_str());
+        libvlc_media_t * m = libvlc_media_new_location(_libvlc, theFilename.c_str());
         _mp = libvlc_media_player_new_from_media(m);
         libvlc_media_release(m);
 
