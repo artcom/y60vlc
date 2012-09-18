@@ -14,7 +14,7 @@ Windows Build Instructions
 
 - Download the precompiles binaries from http://nightlies.videolan.org/build/win32/last/ and extract them somewhere (set the VLC_DIR enviroment var to point to it)
   - Note: make sure the /sdk subdirectory exists. The last time I checked, it was missing the the zip, but existed in the 7z archive
-  - Note: the currently included vlc.lib seems to be broken, causing a load-time error. Replacing the vlc.lib with xhttps://code.google.com/p/vc-libvlc/ helped
+  - Note: the currently included vlc.lib seems to be broken, causing a load-time error. Replacing the vlc.lib with https://code.google.com/p/vc-libvlc/ helped
 
 - add %VLC_DIR% to the PATH
 - set VLC_PLUGIN_PATH to %VLC_DIR%\plugins

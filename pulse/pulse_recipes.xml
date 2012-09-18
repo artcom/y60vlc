@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project default-recipe="GNU Make">
+<project default-recipe="GMake Linux Continuous">
     
     <property name="build.root" value="_builds"/>
     <property name="ctest.log.dir" value="Testing/Temporary/"/>
