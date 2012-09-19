@@ -59,6 +59,7 @@
 #ifndef _ac_VLC_h_
 #define _ac_VLC_h_
 
+#include <stdint.h>
 #include <asl/base/settings.h>
 #include <asl/base/PlugInBase.h>
 #include <asl/base/ReadWriteLock.h>
