@@ -59,7 +59,6 @@
 #ifndef _ac_VLC_h_
 #define _ac_VLC_h_
 
-
 #include <asl/base/settings.h>
 #include <asl/base/PlugInBase.h>
 #include <asl/base/ReadWriteLock.h>
@@ -130,8 +129,8 @@ namespace y60 {
         }
 
         std::string _mediaURL;
-        int _myFrameWidth;
-        int _myFrameHeight;
+        unsigned _myFrameWidth;
+        unsigned _myFrameHeight;
 
         PixelEncoding _rasterEncoding;
         asl::Block * _curBuffer;
