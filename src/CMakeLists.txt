@@ -20,4 +20,13 @@ y60_add_component(
     DEPENDS y60video y60base aslaudio
     EXTERNS ${EXTERNALS}
 )
+# Install script library
+install(
+    DIRECTORY js
+    DESTINATION lib/y60
+    COMPONENT ${RUNTIME_COMPONENT}
+    FILES_MATCHING
+        PATTERN "*.js"
+        PATTERN ".svn" EXCLUDE
+)
 
