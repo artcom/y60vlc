@@ -63,7 +63,7 @@ namespace y60 {
         if (_curBuffer) {
             delete _curBuffer;
         }
-
+        AC_DEBUG << "deleting VLC instance";
     }
 
     asl::Ptr<CaptureDevice> VLC::instance() const {
