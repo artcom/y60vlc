@@ -36,7 +36,7 @@ ac_add_project(
 	VERSION_MAJOR 1 VERSION_MINOR 2 VERSION_PATCH 0
     VENDOR "ART+COM AG"
 	CONTACT "info@artcom.de"
-	DESCRIPTION "y60 libvnc component"
+	DESCRIPTION "y60 libvlc component"
 )
 
 add_subdirectory(src)
