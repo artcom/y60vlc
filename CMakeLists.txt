@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 2.6.2)
 
 project(Y60VLCPlugin)
 
+set(VERSION_MAJOR 1)
+set(VERSION_MINOR 2)
+set(VERSION_PATCH 0)
+set(VERSION_STRING ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
+
 find_package(Y60)
 
 add_definitions(-DAC_BUILT_WITH_CMAKE)
@@ -31,13 +36,21 @@ find_package_handle_standard_args(LIBVLC DEFAULT_MSG
 
 mark_as_advanced(LIBVLC_INCLUDE_DIR LIBVLC_LIBRARY )
 
-ac_add_project(
+ac_begin_solution(
     Y60VLCPlugin
-	VERSION_MAJOR 1 VERSION_MINOR 2 VERSION_PATCH 0
+    VERSION_MAJOR ${VERSION_MAJOR} VERSION_MINOR ${VERSION_MINOR} VERSION_PATCH  ${VERSION_PATCH}
     VENDOR "ART+COM AG"
-	CONTACT "info@artcom.de"
-	DESCRIPTION "y60 libvlc component"
+    CONTACT "info@artcom.de"
+    DESCRIPTION "y60 libvlc component"
+
+    DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/DESCRIPTION.txt"
+    LICENSE_FILE     "${CMAKE_SOURCE_DIR}/LICENSE.txt"
+    PACKAGE_ICON     "${CMAKE_SOURCE_DIR}/installer/windows/NSIS-Header.bmp"
+    INSTALLER_ICON   "${CMAKE_SOURCE_DIR}/installer/windows/shopping_bag.ico"
+    UNINSTALLER_ICON "${CMAKE_SOURCE_DIR}/installer/windows/shopping_bag_grey.ico"
+    CREATE_SHORTCUTS FALSE
 )
 
 add_subdirectory(src)
 
+ac_end_solution(Y60VLCPlugin)
