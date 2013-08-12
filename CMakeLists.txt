@@ -42,7 +42,6 @@ ac_begin_solution(
     VENDOR "ART+COM AG"
     CONTACT "info@artcom.de"
     DESCRIPTION "y60 libvlc component"
-
     DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/DESCRIPTION.txt"
     LICENSE_FILE     "${CMAKE_SOURCE_DIR}/LICENSE.txt"
     PACKAGE_ICON     "${CMAKE_SOURCE_DIR}/installer/windows/NSIS-Header.bmp"
