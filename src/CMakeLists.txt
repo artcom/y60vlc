@@ -27,6 +27,5 @@ install(
     COMPONENT ${RUNTIME_COMPONENT}
     FILES_MATCHING
         PATTERN "*.js"
-        PATTERN ".svn" EXCLUDE
 )
 
