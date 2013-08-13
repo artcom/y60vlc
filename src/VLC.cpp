@@ -62,6 +62,7 @@ namespace y60 {
        char const *vlc_argv[] =
         {
             "--no-osd",
+            "-vvv",
             "--reset-plugins-cache",
             "--no-xlib", // tell VLC to not use Xlib
         };
@@ -123,8 +124,17 @@ namespace y60 {
         unload();
 
         AC_DEBUG << "VLC::load('" << theFilename << "')";
-        _mediaURL = theFilename;
-        libvlc_media_t *media = libvlc_media_new_location(_libvlc, theFilename.c_str());
+
+        libvlc_time_t playTime = 0;
+        
+        std::vector<std::string> elements = asl::splitString(theFilename, "#");
+        if (elements.size() == 2) {
+            playTime = as<asl::Unsigned64>(elements[1]);
+            AC_DEBUG << "playtime: " << playTime;
+        }
+        
+        _mediaURL = elements[0];
+        libvlc_media_t *media = libvlc_media_new_location(_libvlc, _mediaURL.c_str());
         
         if (_mediaPlayer == NULL) {
             _mediaPlayer = libvlc_media_player_new_from_media(media);
@@ -137,7 +147,9 @@ namespace y60 {
         _rasterEncoding = BGR;
         setPixelFormat(_rasterEncoding);
         libvlc_video_set_format_callbacks(_mediaPlayer, VLC::setup_video, VLC::cleanup_video);
-        libvlc_media_player_play(_mediaPlayer);   
+
+        libvlc_media_player_play(_mediaPlayer);
+        libvlc_media_player_set_time(_mediaPlayer, playTime);
     }
 
     void
