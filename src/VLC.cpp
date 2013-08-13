@@ -130,7 +130,7 @@ namespace y60 {
         std::vector<std::string> elements = asl::splitString(theFilename, "#");
         if (elements.size() == 2) {
             playTime = as<asl::Unsigned64>(elements[1]);
-            AC_DEBUG << "playtime: " << playTime;
+            AC_DEBUG << "seeking to playback position at " << playTime << " milliseconds.";
         }
         
         _mediaURL = elements[0];
