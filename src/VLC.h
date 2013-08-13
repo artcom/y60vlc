@@ -61,23 +61,13 @@ namespace y60 {
         void unload();
         void readFrame(dom::ResizeableRasterPtr theTargetRaster);
 
-        /**
-         * Starts movie decoding
-         * @param theStartTime movie-time to start decoding at.
-         */
-        // void startMovie(double theStartTime = 0.0f, bool theStartAudioFlag = true);
-
-        //void resumeMovie(double theStartTime = 0.0f, bool theResumeAudioFlag = true);
-
-        /**
-         * Called to stop the decoding.
-         */
-        // void stopMovie(bool theStopAudioFlag = true);
-        // void closeMovie();
-
         const char * getName() const { return "y60vlc"; }
 
         // void shutdown();
+
+        virtual void stopCapture();
+        virtual void startCapture();
+        virtual void pauseCapture();
 
 	    DEFINE_EXCEPTION(Exception, asl::Exception);
 

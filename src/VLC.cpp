@@ -62,7 +62,7 @@ namespace y60 {
        char const *vlc_argv[] =
         {
             "--no-osd",
-            "-vvv",
+            //"-vvv",
             "--reset-plugins-cache",
             "--no-xlib", // tell VLC to not use Xlib
         };
@@ -206,6 +206,30 @@ namespace y60 {
         }
         _curBuffer = nextBuffer;
         return; 
+    };
+
+    void 
+    VLC::stopCapture() {
+        AC_TRACE << "stop capture";
+        if (_mediaPlayer) {
+            libvlc_media_player_stop(_mediaPlayer);
+        }
+    };
+
+    void
+    VLC::startCapture() {
+        AC_TRACE << "start capture";
+        if (_mediaPlayer) {
+            libvlc_media_player_play(_mediaPlayer);
+        }
+    };
+
+    void
+    VLC::pauseCapture() {
+        AC_TRACE << "pause capture";
+        if (_mediaPlayer) {
+            libvlc_media_player_set_pause(_mediaPlayer, 1);
+        }
     };
 
 }
