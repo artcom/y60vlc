@@ -1,21 +1,19 @@
 Mac OS Build Instructions
 =========================
 
-- install libvlc from brew formula. Note: brew's x264 will prevent libvlc from linking:
+- install libvlc from brew formula:
 
-brew unlink x264
-brew install libvlc --HEAD
-brew link x264
+brew tap tomahawk-player/homebrew-tomahawk
+brew install vlc --HEAD
 
 - now you should be able to build y60vlc with the standard CMAKE toolchain
+- set VLC_PLUGIN_PATH=/usr/local/lib/vlc/plugins
 
 Windows Build Instructions
 ==========================
 
 - Download the precompiles binaries from http://nightlies.videolan.org/build/win32/last/ and extract them somewhere (set the VLC_DIR enviroment var to point to it)
   - Note: make sure the %VLC_DIR%/sdk subdirectory exists. The last time I checked, it was missing the the zip, but existed in the 7z archive
-  - Note: the currently included vlc.lib seems to be broken, causing a load-time error. Replacing the vlc.lib with https://code.google.com/p/vc-libvlc/ helped
 
 - add %VLC_DIR% to the PATH
 - set VLC_PLUGIN_PATH to %VLC_DIR%\plugins
-

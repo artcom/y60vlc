@@ -26,34 +26,6 @@
 
 // You should have received a copy of the GNU General Public License
 // along with ART+COM Y60.  If not, see <http://www.gnu.org/licenses/>.
-// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
-//
-// Description: TODO
-//
-// Last Review: NEVER, NOONE
-//
-//  review status report: (perfect, ok, fair, poor, disaster, notapplicable, unknown)
-//    usefullness            : unknown
-//    formatting             : unknown
-//    documentation          : unknown
-//    test coverage          : unknown
-//    names                  : unknown
-//    style guide conformance: unknown
-//    technical soundness    : unknown
-//    dead code              : unknown
-//    readability            : unknown
-//    understandabilty       : unknown
-//    interfaces             : unknown
-//    confidence             : unknown
-//    integration            : unknown
-//    dependencies           : unknown
-//    cheesyness             : unknown
-//
-//    overall review status  : unknown
-//
-//    recommendations:
-//       - unknown
-// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 */
 
 #ifndef _ac_VLC_h_
@@ -80,11 +52,13 @@ namespace y60 {
         ~VLC();
         virtual asl::Ptr<CaptureDevice> instance() const;
         std::string canDecode(const std::string & theUrl, asl::Ptr<asl::ReadableStreamHandle> theStream = asl::Ptr<asl::ReadableStreamHandle>());
+        
         /**
          * loads a movie from the file given by theFilename
          * @param theFilename file to load into the decoder
          */
         void load(const std::string & theFilename);
+        void unload();
         void readFrame(dom::ResizeableRasterPtr theTargetRaster);
 
         /**
@@ -109,6 +83,7 @@ namespace y60 {
 
      private:
         asl::ReadWriteLock _myFrameLock;
+        
         // callbacks & static dispatchers
         void *lock(void ** pixels);
         static void * lock(void* self, void ** pixels) { return static_cast<VLC*>(self)->lock(pixels); };
@@ -136,8 +111,7 @@ namespace y60 {
         PixelEncoding _rasterEncoding;
         asl::Block * _curBuffer;
         libvlc_instance_t * _libvlc;
-        libvlc_media_player_t * _mp;
-        
+        libvlc_media_player_t * _mediaPlayer;
     };
 /* @} */
 }

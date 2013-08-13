@@ -55,11 +55,27 @@ namespace y60 {
     VLC::VLC(asl::DLHandle theDLHandle) 
         : CaptureDevice(),
         PlugInBase(theDLHandle),
-        _curBuffer(0)
+        _curBuffer(NULL),
+        _mediaPlayer(NULL),
+        _libvlc(NULL)
     {
+       char const *vlc_argv[] =
+        {
+            "--no-osd",
+            "--reset-plugins-cache",
+            "--no-xlib", // tell VLC to not use Xlib
+        };
+        int vlc_argc = sizeof(vlc_argv) / sizeof(*vlc_argv);
+        _libvlc = libvlc_new(vlc_argc, vlc_argv);
     }
 
     VLC::~VLC() {
+        unload();
+        if (_libvlc) {
+            libvlc_release(_libvlc);
+            _libvlc = NULL;
+        }
+    
         if (_curBuffer) {
             delete _curBuffer;
         }
@@ -74,17 +90,18 @@ namespace y60 {
     void
     VLC::readFrame(dom::ResizeableRasterPtr theTargetRaster) {
         ScopeLocker myFrameLock(_myFrameLock, true);
-        if (_curBuffer == 0) {
+        if (_curBuffer == NULL) {
             return;
         }
 		if (getFrameWidth() != _myFrameWidth) setFrameWidth(_myFrameWidth);
 		if (getFrameHeight() != _myFrameHeight) setFrameHeight(_myFrameHeight);
         theTargetRaster->resize(getFrameWidth(), getFrameHeight());
-        std::copy(_curBuffer->begin(), _curBuffer->end(),  
-                        theTargetRaster->pixels().begin());
+        std::copy(_curBuffer->begin(), _curBuffer->end(), theTargetRaster->pixels().begin());
+        
         // delete the current buffer, marking that we already copied it to the texture
+        AC_TRACE << "freeing " << _curBuffer->size() << " bytes after copying to texture.";
         delete _curBuffer;
-        _curBuffer = 0;
+        _curBuffer = NULL;
     }
 
     std::string
@@ -92,7 +109,7 @@ namespace y60 {
         std::string::size_type schemaDelimiter = theUrl.find(":");
         if (schemaDelimiter != std::string::npos) {
             std::string urlSchema = theUrl.substr(0, schemaDelimiter);
-            if (urlSchema == "file" || urlSchema == "rtp") {
+            if (urlSchema == "file" || urlSchema == "rtp" || urlSchema == "http") {
                 return MIME_TYPE;
             }
         }
@@ -103,36 +120,38 @@ namespace y60 {
     
     void
     VLC::load(const std::string & theFilename) {
+        unload();
+
         AC_DEBUG << "VLC::load('" << theFilename << "')";
         _mediaURL = theFilename;
+        libvlc_media_t *media = libvlc_media_new_location(_libvlc, theFilename.c_str());
+        
+        if (_mediaPlayer == NULL) {
+            _mediaPlayer = libvlc_media_player_new_from_media(media);
+        } else {
+            libvlc_media_player_set_media(_mediaPlayer, media);
+        }
+        libvlc_media_release(media);
 
-        char const *vlc_argv[] =
-        {
-            "--no-osd",
-			"-vvv",
-			"--reset-plugins-cache",
-            "--no-xlib", /* tell VLC to not use Xlib */
-        };
-        int vlc_argc = sizeof(vlc_argv) / sizeof(*vlc_argv);
-
-
-        _libvlc = libvlc_new(vlc_argc, vlc_argv);
-        libvlc_media_t * m = libvlc_media_new_location(_libvlc, theFilename.c_str());
-        _mp = libvlc_media_player_new_from_media(m);
-        libvlc_media_release(m);
-
-        libvlc_video_set_callbacks(_mp, VLC::lock, VLC::unlock, VLC::display, this);
+        libvlc_video_set_callbacks(_mediaPlayer, VLC::lock, VLC::unlock, VLC::display, this);
         _rasterEncoding = BGR;
         setPixelFormat(_rasterEncoding);
-        libvlc_video_set_format_callbacks(_mp, VLC::setup_video, VLC::cleanup_video);
-        libvlc_media_player_play(_mp);
+        libvlc_video_set_format_callbacks(_mediaPlayer, VLC::setup_video, VLC::cleanup_video);
+        libvlc_media_player_play(_mediaPlayer);   
+    }
 
-        
+    void
+    VLC::unload() {
+        AC_DEBUG << "VLC::unload()";
+        if (_mediaPlayer) {
+            libvlc_media_player_stop(_mediaPlayer);
+            libvlc_media_player_release(_mediaPlayer);
+            _mediaPlayer = NULL;
+        }
     }
 
     unsigned  
     VLC::setup_video(char * chroma, unsigned *width, unsigned *height, unsigned *pitches, unsigned *lines) {
-
         AC_DEBUG << "VLC requesting " << chroma << " " << *width << "x" << *height << " for " << _mediaURL;
 
         // TODO: we could use our YUV shader here
@@ -170,7 +189,7 @@ namespace y60 {
         AC_TRACE << "display " << _mediaURL;
         ScopeLocker myFrameLock(_myFrameLock, true);
         if (_curBuffer) {
-            AC_TRACE << "freeing " << _curBuffer->size() << " bytes";
+            AC_TRACE << "freeing " << _curBuffer->size() << " bytes after discarding frame.";
             delete _curBuffer;
         }
         _curBuffer = nextBuffer;
