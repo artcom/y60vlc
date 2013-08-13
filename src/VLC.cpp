@@ -57,7 +57,10 @@ namespace y60 {
         PlugInBase(theDLHandle),
         _curBuffer(NULL),
         _mediaPlayer(NULL),
-        _libvlc(NULL)
+        _playTime(0),
+        _libvlc(NULL),
+        _curTimeCode(0),
+        _EOF(false)
     {
        char const *vlc_argv[] =
         {
@@ -68,15 +71,23 @@ namespace y60 {
         };
         int vlc_argc = sizeof(vlc_argv) / sizeof(*vlc_argv);
         _libvlc = libvlc_new(vlc_argc, vlc_argv);
+        _mediaPlayer = libvlc_media_player_new(_libvlc);
+        libvlc_event_manager_t *eventManager = libvlc_media_player_event_manager(_mediaPlayer);
+        libvlc_event_attach(eventManager, libvlc_MediaPlayerEndReached, VLC::handle_vlc_event, this);
     }
 
     VLC::~VLC() {
-        unload();
+        if (_mediaPlayer) {
+            libvlc_event_manager_t *eventManager = libvlc_media_player_event_manager(_mediaPlayer);
+            libvlc_event_detach(eventManager, libvlc_MediaPlayerEndReached, VLC::handle_vlc_event, this);
+            libvlc_media_player_stop(_mediaPlayer);
+            libvlc_media_player_release(_mediaPlayer);
+            _mediaPlayer = NULL;
+        }
         if (_libvlc) {
             libvlc_release(_libvlc);
             _libvlc = NULL;
         }
-    
         if (_curBuffer) {
             delete _curBuffer;
         }
@@ -99,6 +110,8 @@ namespace y60 {
         theTargetRaster->resize(getFrameWidth(), getFrameHeight());
         std::copy(_curBuffer->begin(), _curBuffer->end(), theTargetRaster->pixels().begin());
         
+        setTimeCode(as_string(_curTimeCode));
+
         // delete the current buffer, marking that we already copied it to the texture
         AC_TRACE << "freeing " << _curBuffer->size() << " bytes after copying to texture.";
         delete _curBuffer;
@@ -121,26 +134,21 @@ namespace y60 {
     
     void
     VLC::load(const std::string & theFilename) {
-        unload();
 
         AC_DEBUG << "VLC::load('" << theFilename << "')";
 
-        libvlc_time_t playTime = 0;
+        _EOF = false;
+        _playTime = 0;
         
         std::vector<std::string> elements = asl::splitString(theFilename, "#");
         if (elements.size() == 2) {
-            playTime = as<asl::Unsigned64>(elements[1]);
-            AC_DEBUG << "seeking to playback position at " << playTime << " milliseconds.";
+            _playTime = as<asl::Unsigned64>(elements[1]);
+            AC_DEBUG << "seeking to playback position at " << _playTime << " milliseconds.";
         }
         
         _mediaURL = elements[0];
         libvlc_media_t *media = libvlc_media_new_location(_libvlc, _mediaURL.c_str());
-        
-        if (_mediaPlayer == NULL) {
-            _mediaPlayer = libvlc_media_player_new_from_media(media);
-        } else {
-            libvlc_media_player_set_media(_mediaPlayer, media);
-        }
+        libvlc_media_player_set_media(_mediaPlayer, media);
         libvlc_media_release(media);
 
         libvlc_video_set_callbacks(_mediaPlayer, VLC::lock, VLC::unlock, VLC::display, this);
@@ -149,17 +157,12 @@ namespace y60 {
         libvlc_video_set_format_callbacks(_mediaPlayer, VLC::setup_video, VLC::cleanup_video);
 
         libvlc_media_player_play(_mediaPlayer);
-        libvlc_media_player_set_time(_mediaPlayer, playTime);
+        libvlc_media_player_set_time(_mediaPlayer, _playTime);
     }
 
     void
     VLC::unload() {
         AC_DEBUG << "VLC::unload()";
-        if (_mediaPlayer) {
-            libvlc_media_player_stop(_mediaPlayer);
-            libvlc_media_player_release(_mediaPlayer);
-            _mediaPlayer = NULL;
-        }
     }
 
     unsigned  
@@ -205,12 +208,15 @@ namespace y60 {
             delete _curBuffer;
         }
         _curBuffer = nextBuffer;
+        _curTimeCode = libvlc_media_player_get_time(_mediaPlayer);
+        AC_TRACE << "timestamp from vlc: " << _curTimeCode;
+
         return; 
     };
 
     void 
     VLC::stopCapture() {
-        AC_TRACE << "stop capture";
+        AC_DEBUG << "stop capture";
         if (_mediaPlayer) {
             libvlc_media_player_stop(_mediaPlayer);
         }
@@ -218,18 +224,27 @@ namespace y60 {
 
     void
     VLC::startCapture() {
-        AC_TRACE << "start capture";
+        AC_DEBUG << "start capture";
         if (_mediaPlayer) {
+            libvlc_media_player_set_time(_mediaPlayer, _playTime);
             libvlc_media_player_play(_mediaPlayer);
+            libvlc_media_player_set_time(_mediaPlayer, _playTime);
         }
     };
 
     void
     VLC::pauseCapture() {
-        AC_TRACE << "pause capture";
+        AC_DEBUG << "pause capture";
         if (_mediaPlayer) {
             libvlc_media_player_set_pause(_mediaPlayer, 1);
         }
     };
 
+    void
+    VLC::handle_vlc_event(const struct libvlc_event_t *vlc_event) {
+        if (vlc_event->type == libvlc_MediaPlayerEndReached) {
+            AC_DEBUG << "handling vlc event: libvlc_MediaPlayerEndReached " << vlc_event->type;
+            _EOF = true;
+        }
+    };
 }

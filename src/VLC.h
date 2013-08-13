@@ -69,6 +69,8 @@ namespace y60 {
         virtual void startCapture();
         virtual void pauseCapture();
 
+        virtual bool getEOF() { return _EOF; };
+
 	    DEFINE_EXCEPTION(Exception, asl::Exception);
 
      private:
@@ -94,14 +96,23 @@ namespace y60 {
             static_cast<VLC*>(self)->cleanup_video();
         }
 
+        static void handle_vlc_event(const struct libvlc_event_t *vlc_event, void *self) {
+            static_cast<VLC*>(self)->handle_vlc_event(vlc_event);
+        };
+
+        void handle_vlc_event(const struct libvlc_event_t *vlc_event);
+
         std::string _mediaURL;
         unsigned _myFrameWidth;
         unsigned _myFrameHeight;
+        bool _EOF;
 
         PixelEncoding _rasterEncoding;
         asl::Block * _curBuffer;
+        libvlc_time_t _curTimeCode;
         libvlc_instance_t * _libvlc;
         libvlc_media_player_t * _mediaPlayer;
+        libvlc_time_t _playTime;
     };
 /* @} */
 }
