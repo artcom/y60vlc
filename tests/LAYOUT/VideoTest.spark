@@ -8,6 +8,6 @@
     swapInterval="1"
     i18nContext="global-i18n">    
 
-    <VlcCapture name="movie" type="vlc" uri="file:///Users/juliank/Desktop/KeinOhrHasen_d_5d9468cdfbdd2581a9f6772f159c97807ff43666.mov#480000" x="0" z="2" width="400" height="300" visible="true" mode="play"/>
+    <VlcCapture name="movie" type="vlc" uri="file:///Users/juliank/Desktop/KeinOhrHasen_d_5d9468cdfbdd2581a9f6772f159c97807ff43666.mov#490000" x="0" z="2" width="400" height="300" visible="true" mode="play"/>
 
 </Window>
