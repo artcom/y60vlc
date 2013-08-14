@@ -22,6 +22,7 @@ try {
     var currentChannel = 0;
 
     var videoCapture = ourApp.getChildByName("zdf");
+    print("testMovie_change_channels");
     print(videoCapture.uri);
     window.swapInterval = 1;
         

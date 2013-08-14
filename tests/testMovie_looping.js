@@ -12,6 +12,7 @@ try {
     var ourApp = spark.loadFile("tests/LAYOUT/VideoTest.spark");
 
     var videoCapture = ourApp.getChildByName("movie");
+    print("testMovie_looping");
     print(videoCapture.uri);
     window.swapInterval = 1;
         
