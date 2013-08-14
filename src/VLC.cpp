@@ -60,7 +60,8 @@ namespace y60 {
         _playTime(0),
         _libvlc(NULL),
         _curTimeCode(0),
-        _EOF(false)
+        _EOF(false),
+        _isPaused(false)
     {
        char const *vlc_argv[] =
         {
@@ -138,6 +139,7 @@ namespace y60 {
         AC_DEBUG << "VLC::load('" << theFilename << "')";
 
         _EOF = false;
+        _isPaused = false;
         _playTime = 0;
         
         std::vector<std::string> elements = asl::splitString(theFilename, "#");
@@ -156,8 +158,8 @@ namespace y60 {
         setPixelFormat(_rasterEncoding);
         libvlc_video_set_format_callbacks(_mediaPlayer, VLC::setup_video, VLC::cleanup_video);
 
-        libvlc_media_player_play(_mediaPlayer);
-        libvlc_media_player_set_time(_mediaPlayer, _playTime);
+        //libvlc_media_player_play(_mediaPlayer);
+        //libvlc_media_player_set_time(_mediaPlayer, _playTime);
     }
 
     void
@@ -219,6 +221,7 @@ namespace y60 {
         AC_DEBUG << "stop capture";
         if (_mediaPlayer) {
             libvlc_media_player_stop(_mediaPlayer);
+            _isPaused = false;
         }
     };
 
@@ -227,9 +230,13 @@ namespace y60 {
         AC_DEBUG << "start capture";
         if (_mediaPlayer) {
             _EOF = false;
-            libvlc_media_player_set_time(_mediaPlayer, _playTime);
+
             libvlc_media_player_play(_mediaPlayer);
-            libvlc_media_player_set_time(_mediaPlayer, _playTime);
+            if (_isPaused == false) {
+                AC_DEBUG << "seeking to playback position at " << _playTime << " milliseconds.";
+                libvlc_media_player_set_time(_mediaPlayer, _playTime);
+            }
+            _isPaused = false;
         }
     };
 
@@ -237,6 +244,7 @@ namespace y60 {
     VLC::pauseCapture() {
         AC_DEBUG << "pause capture";
         if (_mediaPlayer) {
+            _isPaused = true;
             libvlc_media_player_set_pause(_mediaPlayer, 1);
         }
     };

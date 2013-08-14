@@ -106,6 +106,7 @@ namespace y60 {
         unsigned _myFrameWidth;
         unsigned _myFrameHeight;
         bool _EOF;
+        bool _isPaused;
 
         PixelEncoding _rasterEncoding;
         asl::Block * _curBuffer;
