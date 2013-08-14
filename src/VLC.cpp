@@ -59,16 +59,14 @@ namespace y60 {
         _mediaPlayer(NULL),
         _playTime(0),
         _libvlc(NULL),
-        _curTimeCode(0),
         _EOF(false)
     {
-        playbackState = MEDIAPLAYER_IDLE;
         char const *vlc_argv[] =
         {
             "--no-osd",
             //"-vvv",
             "--reset-plugins-cache",
-            "--no-xlib", // tell VLC to not use Xlib
+            "--no-xlib" // tell VLC to not use Xlib
         };
         int vlc_argc = sizeof(vlc_argv) / sizeof(*vlc_argv);
         _libvlc = libvlc_new(vlc_argc, vlc_argv);
@@ -111,7 +109,9 @@ namespace y60 {
         theTargetRaster->resize(getFrameWidth(), getFrameHeight());
         std::copy(_curBuffer->begin(), _curBuffer->end(), theTargetRaster->pixels().begin());
         
-        setTimeCode(as_string(_curTimeCode));
+        libvlc_time_t curTimeCode = libvlc_media_player_get_time(_mediaPlayer);
+        AC_TRACE << "-- timestamp from vlc: " << curTimeCode;
+        setTimeCode(as_string(curTimeCode));
 
         // delete the current buffer, marking that we already copied it to the texture
         AC_TRACE << "freeing " << _curBuffer->size() << " bytes after copying to texture.";
@@ -140,7 +140,6 @@ namespace y60 {
 
         _EOF = false;
         _playTime = 0;
-        playbackState = MEDIAPLAYER_IDLE;
         
         std::vector<std::string> elements = asl::splitString(theFilename, "#");
         if (elements.size() == 2) {
@@ -159,13 +158,8 @@ namespace y60 {
         setPixelFormat(_rasterEncoding);
         libvlc_video_set_format_callbacks(_mediaPlayer, VLC::setup_video, VLC::cleanup_video);
 
-        /*playbackState = MEDIAPLAYER_PLAYING;
         libvlc_media_player_play(_mediaPlayer);
-
-        if (_playTime > 0) {
-            AC_DEBUG << "seeking to playback position at " << _playTime << " milliseconds.";
-            libvlc_media_player_set_time(_mediaPlayer, _playTime);
-        }*/
+        libvlc_media_player_set_time(_mediaPlayer, _playTime);
     }
 
     void
@@ -211,20 +205,12 @@ namespace y60 {
     void VLC::display(Block* nextBuffer) {
         AC_TRACE << "display " << _mediaURL;
 
-        /*if (playbackState != MEDIAPLAYER_PLAYING) {
-            AC_DEBUG << "-- SKIPPING display";
-            return;  
-        }*/
-
         ScopeLocker myFrameLock(_myFrameLock, true);
         if (_curBuffer) {
             AC_TRACE << "-- freeing " << _curBuffer->size() << " bytes after discarding frame.";
             delete _curBuffer;
         }
         _curBuffer = nextBuffer;
-        _curTimeCode = libvlc_media_player_get_time(_mediaPlayer);
-        AC_TRACE << "-- timestamp from vlc: " << _curTimeCode;
-
         return;
     };
 
@@ -232,7 +218,6 @@ namespace y60 {
     VLC::stopCapture() {
         AC_DEBUG << "stop capture";
         if (_mediaPlayer) {
-            playbackState = MEDIAPLAYER_STOPPED;
             libvlc_media_player_stop(_mediaPlayer);
         }
     };
@@ -244,11 +229,12 @@ namespace y60 {
             _EOF = false;
             
             libvlc_media_player_play(_mediaPlayer);
-            if (playbackState != MEDIAPLAYER_PAUSED) {
+            
+            libvlc_state_t state = libvlc_media_player_get_state(_mediaPlayer);
+            if (state != libvlc_Paused) {
                 AC_DEBUG << "seeking to playback position at " << _playTime << " milliseconds.";
-                libvlc_media_player_set_time(_mediaPlayer, _playTime);
+                libvlc_media_player_set_time(_mediaPlayer, _playTime);    
             }
-            playbackState = MEDIAPLAYER_PLAYING;
         }
     };
 
@@ -256,7 +242,6 @@ namespace y60 {
     VLC::pauseCapture() {
         AC_DEBUG << "pause capture";
         if (_mediaPlayer) {
-            playbackState = MEDIAPLAYER_PAUSED;
             libvlc_media_player_set_pause(_mediaPlayer, 1);
         }
     };

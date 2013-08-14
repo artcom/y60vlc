@@ -105,18 +105,9 @@ namespace y60 {
         unsigned _myFrameWidth;
         unsigned _myFrameHeight;
         bool _EOF;
-        
-        typedef enum {
-            MEDIAPLAYER_IDLE,
-            MEDIAPLAYER_PLAYING,
-            MEDIAPLAYER_PAUSED,
-            MEDIAPLAYER_STOPPED
-        } PlaybackState;
-        PlaybackState playbackState;
 
         PixelEncoding _rasterEncoding;
         asl::Block * _curBuffer;
-        libvlc_time_t _curTimeCode;
         libvlc_instance_t * _libvlc;
         libvlc_media_player_t * _mediaPlayer;
         libvlc_time_t _playTime;
