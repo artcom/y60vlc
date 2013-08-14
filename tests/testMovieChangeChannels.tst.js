@@ -30,7 +30,7 @@ try {
 
     ourApp.onFrame = function(theTime, theDeltaT) {
         
-        if (lastChannelChangeTime !== null && theTime - lastChannelChangeTime > 5) {
+        if (lastChannelChangeTime !== null && theTime - lastChannelChangeTime > 10) {
             
             currentChannel++;
             if (currentChannel >= channels.length) {

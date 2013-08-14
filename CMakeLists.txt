@@ -51,5 +51,6 @@ ac_begin_solution(
 )
 
 add_subdirectory(src)
+add_subdirectory(tests)
 
 ac_end_solution(Y60VLCPlugin)

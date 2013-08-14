@@ -3,7 +3,7 @@ use("SceneViewer.js");
 // load spark (with sparkish widgets)
 this.useSparkWidgets = true;
 use("spark/spark.js");
-use("VlcCapture.js");
+use("../src/js/VlcCapture.js");
 
 plug("y60vlc");
 
