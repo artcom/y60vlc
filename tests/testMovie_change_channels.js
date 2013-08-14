@@ -13,11 +13,11 @@ try {
     var ourApp = spark.loadFile("tests/LAYOUT/VideoStreamTest.spark");
 
     var channels = [
-        "rtp://239.35.10.2:10000",
         "rtp://239.35.10.19:10000",
         "rtp://239.35.10.20:10000",
         "rtp://239.35.10.22:10000",
-        "rtp://239.35.10.23:10000"
+        "rtp://239.35.10.23:10000",
+        "rtp://239.35.10.2:10000"
     ];
     var currentChannel = 0;
 

@@ -3,8 +3,8 @@
     title="VideoTest"
     decorations="true"
     mouseCursor="true"
-    width="1920"
-    height="1080"
+    width="400"
+    height="300"
     swapInterval="1"
     i18nContext="global-i18n">    
 
