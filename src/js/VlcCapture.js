@@ -44,7 +44,8 @@ spark.VlcCapture.Constructor = function (Protected) {
     Base.realize = Public.realize;
     Public.realize = function (theMaterialOrShape) {
         Base.realize(theMaterialOrShape);
-        createNewCaptureNode(Protected.getString("uri"));        
+        createNewCaptureNode(Protected.getString("uri"));
+        useCaching = true;
     };
 
     Base.postRealize = Public.postRealize;
@@ -56,7 +57,7 @@ spark.VlcCapture.Constructor = function (Protected) {
         return _myCaptureNode.src; 
     });
     Public.__defineSetter__("uri", function(theNewUri) {
-        _myCaptureNode.src = theNewUri; 
+        _myCaptureNode.src = theNewUri;
     });
 
     Public.__defineGetter__("playmode", function() {
@@ -65,5 +66,13 @@ spark.VlcCapture.Constructor = function (Protected) {
     Public.__defineSetter__("playmode", function(theNewPlaymode) {
         _myCaptureNode.playmode = theNewPlaymode; 
     });
+
+    Public.__defineGetter__("frameWidth", function() {
+        return this.image.raster.width;
+    });
+    Public.__defineGetter__("frameHeight", function() {
+        return this.image.raster.height;
+    });
+
 };
 
