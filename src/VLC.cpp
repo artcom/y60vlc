@@ -157,9 +157,6 @@ namespace y60 {
         _rasterEncoding = BGR;
         setPixelFormat(_rasterEncoding);
         libvlc_video_set_format_callbacks(_mediaPlayer, VLC::setup_video, VLC::cleanup_video);
-
-        //libvlc_media_player_play(_mediaPlayer);
-        //libvlc_media_player_set_time(_mediaPlayer, _playTime);
     }
 
     void
