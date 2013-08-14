@@ -226,6 +226,7 @@ namespace y60 {
     VLC::startCapture() {
         AC_DEBUG << "start capture";
         if (_mediaPlayer) {
+            _EOF = false;
             libvlc_media_player_set_time(_mediaPlayer, _playTime);
             libvlc_media_player_play(_mediaPlayer);
             libvlc_media_player_set_time(_mediaPlayer, _playTime);
