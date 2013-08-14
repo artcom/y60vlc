@@ -26,9 +26,10 @@ try {
     window.swapInterval = 1;
         
     var myRealOnFrame = ourApp.onFrame;
+
     ourApp.onFrame = function(theTime, theDeltaT) {
         
-        /*if (lastChannelChangeTime !== null && theTime - lastChannelChangeTime > 5) {
+        if (lastChannelChangeTime !== null && theTime - lastChannelChangeTime > 5) {
             
             currentChannel++;
             if (currentChannel >= channels.length) {
@@ -36,15 +37,14 @@ try {
             }
             
             print ("Changing to channel: " + channels[currentChannel]);
-
             videoCapture.uri = channels[currentChannel];
-
+            
             lastChannelChangeTime = null;
         }
         if (lastChannelChangeTime === null) {
             lastChannelChangeTime = theTime;
         }
-        */
+        
         myRealOnFrame.call(ourApp, theTime, theDeltaT);
     }
     ourApp.go();
