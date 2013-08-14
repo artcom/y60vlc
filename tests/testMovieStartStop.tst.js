@@ -25,7 +25,6 @@ try {
         if (lastToggleTime !== null && theTime - lastToggleTime > 2) {
             
             on = !on;
-
             print("on: " + on);
             if (on === true) 
                 videoCapture.playmode = "play";
