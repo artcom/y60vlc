@@ -96,18 +96,23 @@ namespace y60 {
             static_cast<VLC*>(self)->cleanup_video();
         }
 
+        void handle_vlc_event(const struct libvlc_event_t *vlc_event);
         static void handle_vlc_event(const struct libvlc_event_t *vlc_event, void *self) {
             static_cast<VLC*>(self)->handle_vlc_event(vlc_event);
         };
-
-        void handle_vlc_event(const struct libvlc_event_t *vlc_event);
 
         std::string _mediaURL;
         unsigned _myFrameWidth;
         unsigned _myFrameHeight;
         bool _EOF;
-        bool _isPaused;
-        bool _isStopped;
+        
+        typedef enum {
+            MEDIAPLAYER_IDLE,
+            MEDIAPLAYER_PLAYING,
+            MEDIAPLAYER_PAUSED,
+            MEDIAPLAYER_STOPPED
+        } PlaybackState;
+        PlaybackState playbackState;
 
         PixelEncoding _rasterEncoding;
         asl::Block * _curBuffer;
