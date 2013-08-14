@@ -61,7 +61,8 @@ namespace y60 {
         _libvlc(NULL),
         _curTimeCode(0),
         _EOF(false),
-        _isPaused(false)
+        _isPaused(false),
+        _isStopped(false)
     {
        char const *vlc_argv[] =
         {
@@ -199,8 +200,11 @@ namespace y60 {
         AC_TRACE << "unlock " << _mediaURL;
         return; 
     };
-    void VLC::display(Block* nextBuffer) { 
+    void VLC::display(Block* nextBuffer) {
         AC_TRACE << "display " << _mediaURL;
+
+        if (_isStopped) return;
+
         ScopeLocker myFrameLock(_myFrameLock, true);
         if (_curBuffer) {
             AC_TRACE << "freeing " << _curBuffer->size() << " bytes after discarding frame.";
@@ -217,8 +221,9 @@ namespace y60 {
     VLC::stopCapture() {
         AC_DEBUG << "stop capture";
         if (_mediaPlayer) {
-            libvlc_media_player_stop(_mediaPlayer);
+            _isStopped = true;
             _isPaused = false;
+            libvlc_media_player_stop(_mediaPlayer);
         }
     };
 
@@ -227,13 +232,14 @@ namespace y60 {
         AC_DEBUG << "start capture";
         if (_mediaPlayer) {
             _EOF = false;
-
+            
             libvlc_media_player_play(_mediaPlayer);
             if (_isPaused == false) {
                 AC_DEBUG << "seeking to playback position at " << _playTime << " milliseconds.";
                 libvlc_media_player_set_time(_mediaPlayer, _playTime);
             }
             _isPaused = false;
+            _isStopped = false;
         }
     };
 
@@ -242,6 +248,7 @@ namespace y60 {
         AC_DEBUG << "pause capture";
         if (_mediaPlayer) {
             _isPaused = true;
+            _isStopped = false;
             libvlc_media_player_set_pause(_mediaPlayer, 1);
         }
     };

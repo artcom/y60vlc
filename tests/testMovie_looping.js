@@ -11,7 +11,7 @@ plug("y60vlc");
 try {
     var ourApp = spark.loadFile("tests/LAYOUT/VideoTest.spark");
 
-    var videoCapture = ourApp.getChildByName("zdf");
+    var videoCapture = ourApp.getChildByName("movie");
     print(videoCapture.uri);
     window.swapInterval = 1;
         

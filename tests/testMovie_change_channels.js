@@ -10,7 +10,7 @@ plug("y60vlc");
 // load layouts and run the event loop
 try {
     var lastChannelChangeTime = null;
-    var ourApp = spark.loadFile("tests/LAYOUT/VideoTest.spark");
+    var ourApp = spark.loadFile("tests/LAYOUT/VideoStreamTest.spark");
 
     var channels = [
         "rtp://239.35.10.2:10000",

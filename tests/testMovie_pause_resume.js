@@ -12,7 +12,7 @@ try {
     var lastToggleTime = null;
     var ourApp = spark.loadFile("tests/LAYOUT/VideoTest.spark");
 
-    var videoCapture = ourApp.getChildByName("zdf");
+    var videoCapture = ourApp.getChildByName("movie");
     print(videoCapture.uri);
     window.swapInterval = 1;
         
@@ -24,7 +24,6 @@ try {
         if (lastToggleTime !== null && theTime - lastToggleTime > 1) {
             
             on = !on;
-
             print("on: " + on);
             if (on === true) 
                 videoCapture.playmode = "play";

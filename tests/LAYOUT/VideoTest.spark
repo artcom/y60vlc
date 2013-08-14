@@ -8,11 +8,6 @@
     swapInterval="1"
     i18nContext="global-i18n">    
 
-    <VlcCapture name="zdf" type="vlc" uri="rtp://239.35.10.2:10000" x="0" width="1280" height="720" visible="true" mode="play" z="2"/>
-    <!--
-    <VlcCapture type="vlc" uri="rtp://239.35.10.19:10000" x="0" y="720" width="640" height="360" visible="true" name="cam" mode="play" z="2"/>
-    <VlcCapture type="vlc" uri="rtp://239.35.10.20:10000" x="640" y="720" width="640" height="360" visible="true" name="cam" mode="play" z="2"/>
-    <VlcCapture type="vlc" uri="rtp://239.35.10.23:10000" x="1280" y="0" width="640" height="360" visible="true" name="cam" mode="play" z="2"/>
-    <VlcCapture type="vlc" uri="rtp://239.35.10.22:10000" x="1280" y="360" width="640" height="360" visible="true" name="cam" mode="play" z="2"/>
-    -->
+    <VlcCapture name="movie" type="vlc" uri="file:///Users/juliank/Desktop/KeinOhrHasen_d_5d9468cdfbdd2581a9f6772f159c97807ff43666.mov#480000" x="0" z="2" width="400" height="300" visible="true" mode="play"/>
+
 </Window>
