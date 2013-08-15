@@ -73,6 +73,9 @@ spark.VlcCapture.Constructor = function (Protected) {
     Public.__defineGetter__("frameHeight", function() {
         return this.image.raster.height;
     });
+    Public.__defineGetter__("timecode", function() {
+        return _myCaptureNode.timecode;
+    });
 
 };
 
