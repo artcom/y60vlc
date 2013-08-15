@@ -17,7 +17,6 @@ try {
     window.swapInterval = 1;
         
     var myRealOnFrame = ourApp.onFrame;
-
     ourApp.onFrame = function(theTime, theDeltaT) {
     
         if (videoCapture.playmode === "stop") {

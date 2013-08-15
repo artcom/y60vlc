@@ -45,7 +45,7 @@ spark.VlcCapture.Constructor = function (Protected) {
     Public.realize = function (theMaterialOrShape) {
         Base.realize(theMaterialOrShape);
         createNewCaptureNode(Protected.getString("uri"));
-        useCaching = true;
+        this.useCaching = true;
     };
 
     Base.postRealize = Public.postRealize;
