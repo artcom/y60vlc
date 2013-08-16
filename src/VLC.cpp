@@ -219,6 +219,7 @@ namespace y60 {
         AC_DEBUG << "stop capture";
         if (_mediaPlayer) {
             libvlc_media_player_stop(_mediaPlayer);
+            _EOF = false;
         }
     };
 
