@@ -21,15 +21,36 @@ try {
     ];
     var currentChannel = 0;
 
-    var videoCapture = ourApp.getChildByName("zdf");
+    //var videoCapture = ourApp.getChildByName("zdf");
+    var videoCapture = new spark.VlcCapture();
+    ourApp.addChild(videoCapture);
+    videoCapture.name = "zdf";
+    videoCapture.x = 0;
+    videoCapture.y = 0;
+    videoCapture.z = 5;
+    videoCapture.width = 1920;
+    videoCapture.height = 1024;
+    videoCapture.visible = "true";
+    videoCapture.type = "vlc";
+    videoCapture.uri = "rtp://239.35.10.2:10000";
+
+    videoCapture.realize();
+    videoCapture.postRealize();
+
     print("testMovie_change_channels");
     print(videoCapture.uri);
     window.swapInterval = 1;
-        
-    var myRealOnFrame = ourApp.onFrame;
+    
+    var adjustSize = function (theMovie) {
+        theMovie.width = theMovie.frameWidth;
+        theMovie.height = theMovie.frameHeight;
+    };
 
+    var myRealOnFrame = ourApp.onFrame;
     ourApp.onFrame = function(theTime, theDeltaT) {
         
+        adjustSize(videoCapture);
+
         if (lastChannelChangeTime !== null && theTime - lastChannelChangeTime > 10) {
             
             currentChannel++;

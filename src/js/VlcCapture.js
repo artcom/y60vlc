@@ -18,6 +18,7 @@ spark.VlcCapture.Constructor = function (Protected) {
     var _myAVTCameraFlag = 0;
     var _myFramerate     = 30;
     var _myBitsPerPixel  = 24;
+    var _uri             = "";
     
     /////////////////////
     // Private Methods //
@@ -44,7 +45,11 @@ spark.VlcCapture.Constructor = function (Protected) {
     Base.realize = Public.realize;
     Public.realize = function (theMaterialOrShape) {
         Base.realize(theMaterialOrShape);
-        createNewCaptureNode(Protected.getString("uri"));
+        if (_uri !== ""){
+            createNewCaptureNode(_uri);
+        } else {
+            createNewCaptureNode(Protected.getString("uri"));
+        }
         this.useCaching = true;
     };
 
@@ -57,7 +62,10 @@ spark.VlcCapture.Constructor = function (Protected) {
         return _myCaptureNode.src; 
     });
     Public.__defineSetter__("uri", function(theNewUri) {
-        _myCaptureNode.src = theNewUri;
+        _uri = theNewUri;
+        if (_myCaptureNode) {
+            _myCaptureNode.src = theNewUri;
+        }
     });
 
     Public.__defineGetter__("playmode", function() {

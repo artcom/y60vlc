@@ -8,8 +8,8 @@
     swapInterval="1"
     i18nContext="global-i18n">    
 
-    <VlcCapture name="zdf" type="vlc" uri="rtp://239.35.10.2:10000" x="0" y="0" z="2" width="1280" height="720" visible="true" playmode="play"/>
-    
+    <!-- <VlcCapture name="zdf" type="vlc" uri="rtp://239.35.10.2:10000" x="0" y="0" z="2" width="1280" height="720" visible="true" playmode="play"/>
+    -->
     <!--
     <VlcCapture type="vlc" uri="rtp://239.35.10.19:10000" x="0" y="720" width="640" height="360" visible="true" name="cam" mode="play" z="2"/>
     <VlcCapture type="vlc" uri="rtp://239.35.10.20:10000" x="640" y="720" width="640" height="360" visible="true" name="cam" mode="play" z="2"/>
