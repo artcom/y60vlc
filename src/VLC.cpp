@@ -143,9 +143,8 @@ namespace y60 {
         
         std::vector<std::string> elements = asl::splitString(theFilename, "#");
         if (elements.size() == 2) {
-            AC_DEBUG << "parsed playback position at " << _playTime << " milliseconds.";
             _playTime = as<asl::Unsigned64>(elements[1]);
-            
+            AC_DEBUG << "parsed playback position at " << _playTime << " milliseconds.";
         }
         
         _mediaURL = elements[0];
@@ -159,7 +158,9 @@ namespace y60 {
         libvlc_video_set_format_callbacks(_mediaPlayer, VLC::setup_video, VLC::cleanup_video);
 
         libvlc_media_player_play(_mediaPlayer);
-        libvlc_media_player_set_time(_mediaPlayer, _playTime);
+        if (_playTime > 0) {
+            libvlc_media_player_set_time(_mediaPlayer, _playTime);
+        }
     }
 
     void
@@ -233,8 +234,10 @@ namespace y60 {
             
             libvlc_state_t state = libvlc_media_player_get_state(_mediaPlayer);
             if (state != libvlc_Paused) {
-                AC_DEBUG << "seeking to playback position at " << _playTime << " milliseconds.";
-                libvlc_media_player_set_time(_mediaPlayer, _playTime);    
+                if (_playTime > 0) {
+                    AC_DEBUG << "seeking to playback position at " << _playTime << " milliseconds.";
+                    libvlc_media_player_set_time(_mediaPlayer, _playTime);    
+                }
             }
         }
     };
