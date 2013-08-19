@@ -11,16 +11,36 @@ plug("y60vlc");
 try {
     var lastToggleTime = null;
     var ourApp = spark.loadFile("tests/LAYOUT/VideoTest.spark");
+    var videoCapture = new spark.VlcCapture();
+    ourApp.addChild(videoCapture);
+    videoCapture.name = "movie";
+    videoCapture.x = 0;
+    videoCapture.y = 0;
+    videoCapture.z = 2;
+    videoCapture.width = 160;
+    videoCapture.height = 120;
+    videoCapture.visible = true;
+    videoCapture.type = "vlc";
+    videoCapture.uri = "file:///Users/juliank/Development/Y60/y60vlc/tests/test_videos/mpeg1_160x120_25_10_audio.mpg#1000";
 
-    var videoCapture = ourApp.getChildByName("movie");
-    print("testMovie_start_stop");
-    print(videoCapture.uri);
-    window.swapInterval = 1;
-        
-    var myRealOnFrame = ourApp.onFrame;
+    videoCapture.realize();
+    videoCapture.postRealize();
 
     var on = true;
+    window.swapInterval = 1;
+
+    print("# TEST: testMovie_start_stop #");
+    print(videoCapture.uri);
+    
+    var adjustSize = function (theVideo) {
+        theVideo.width = theVideo.frameWidth;
+        theVideo.height = theVideo.frameHeight;
+    };
+
+    var myRealOnFrame = ourApp.onFrame;
     ourApp.onFrame = function(theTime, theDeltaT) {
+        
+        adjustSize(videoCapture);
         
         if (lastToggleTime !== null && theTime - lastToggleTime > 2) {
             
