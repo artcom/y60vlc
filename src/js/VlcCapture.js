@@ -59,7 +59,7 @@ spark.VlcCapture.Constructor = function (Protected) {
     };
 
     Public.__defineGetter__("uri", function() {
-        return _myCaptureNode.src; 
+        return _uri; 
     });
     Public.__defineSetter__("uri", function(theNewUri) {
         _uri = theNewUri;
