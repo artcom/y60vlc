@@ -91,6 +91,8 @@ namespace y60 {
             delete _curBuffer;
         }
         AC_DEBUG << "deleting VLC instance";
+
+        setTimeCode(as_string(0));
     }
 
     asl::Ptr<CaptureDevice> VLC::instance() const {
