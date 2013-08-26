@@ -168,6 +168,7 @@ namespace y60 {
     void
     VLC::unload() {
         AC_DEBUG << "VLC::unload()";
+        setTimeCode(as_string(0));
     }
 
     unsigned  
