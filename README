@@ -1,13 +1,23 @@
 Mac OS Build Instructions
 =========================
 
-- install libvlc from brew formula:
+- install libvlc ((a) or (b)):
 
-brew tap tomahawk-player/homebrew-tomahawk
-brew install vlc --HEAD
+  (a) from brew formula:
+      $ brew tap tomahawk-player/homebrew-tomahawk
+      $ brew install vlc --HEAD
+      
+  (b) use installed vlc in /Applications:
+      edit cmake config accordingly
+      - LIBVLC_INCLUDE_DIR = '/Applications/VLC.app/Contents/MacOS/include'
+      - LIBVLC_LIBRARY = '/Applications/VLC.app/Contents/MacOS/lib/libvlc.dylib'
+ 
+      $ export DYLD_LIBRARY_PATH=/Applications/VLC.app/Contents/MacOS/lib
+
 
 - now you should be able to build y60vlc with the standard CMAKE toolchain
-- set VLC_PLUGIN_PATH=/usr/local/lib/vlc/plugins
+- set VLC_PLUGIN_PATH=/usr/local/lib/vlc/plugins (or: /Applications/VLC.app/Contents/MacOS/plugins)
+
 
 Windows Build Instructions
 ==========================
