@@ -1,0 +1,1 @@
+/Users/mirko/Development/Samples/y60vlc/src/CMakeFiles/y60vlc.dir
