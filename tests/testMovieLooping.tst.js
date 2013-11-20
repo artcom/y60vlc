@@ -21,7 +21,7 @@ try {
     videoCapture.height = 120;
     videoCapture.visible = true;
     videoCapture.type = "vlc";
-    videoCapture.uri = "file:///Users/juliank/Development/Y60/y60vlc/tests/test_videos/mpeg1_160x120_25_10_audio.mpg";
+    videoCapture.uri = "file:///PATH_TO_PROJECT/y60vlc/tests/test_videos/mpeg1_160x120_25_10_audio.mpg";
 
     videoCapture.realize();
     videoCapture.postRealize();
