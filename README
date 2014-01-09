@@ -1,6 +1,11 @@
 Mac OS Build Instructions
 =========================
 
+
+Using Homebrew does not seem to work cleanly under Mavericks to date 2013-11-18, see below for workaround.
+
+Using Homebrew:
+————————————————————
 - install libvlc ((a) or (b)):
 
   (a) from brew formula:
@@ -17,6 +22,17 @@ Mac OS Build Instructions
 
 - now you should be able to build y60vlc with the standard CMAKE toolchain
 - set VLC_PLUGIN_PATH=/usr/local/lib/vlc/plugins (or: /Applications/VLC.app/Contents/MacOS/plugins)
+
+Using VLC binaries (Mavericks workaround:
+————————————————————
+- install VLC from videolan.org (binary)
+- target CMake properties accordingly:
+LIBVLC_INCLUDE_DIR=/Applications/VLC.app/Contents/MacOS/include
+LIBVLC_LIBRARY=/Users/user/Development/Samples/y60vlc/lib/libvlc.dylib
+- y60vlc should now be able to build
+- if you encounter an “vlc library not found” error when running y60 with y60vlc you can add a temporary library fallback path with:
+export DYLD_FALLBACK_LIBRARY_PATH=/Applications/VLC.app/Contents/MacOS/lib 
+
 
 
 Windows Build Instructions
