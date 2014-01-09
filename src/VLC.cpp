@@ -55,11 +55,11 @@ namespace y60 {
     VLC::VLC(asl::DLHandle theDLHandle) 
         : CaptureDevice(),
         PlugInBase(theDLHandle),
+        _EOF(false),
         _curBuffer(NULL),
-        _mediaPlayer(NULL),
-        _playTime(0),
         _libvlc(NULL),
-        _EOF(false)
+        _mediaPlayer(NULL),
+        _playTime(0)
     {
         char const *vlc_argv[] =
         {
